@@ -232,24 +232,24 @@ def game_loop():
                         if (pos[0] >= 737 and pos[0] <= 737 + 30) and (pos[1] >= 32 and pos[1] <= 32 + 35):
                             game_state = "MAIN_MENU"
                         elif (pos[0] >= 220 and pos[0] <= 220 + 360) and (pos[1] >= 380 and pos[1] <= 380 + 40):
-                            score_us = cur.execute("""SELECT score FROM users
-                                    WHERE name = ?""", (inputik.get_text(), )).fetchall()
-                            if bool(score_us):
-                                User[1] = inputik.get_text()
-                                User[2] = score_us[0][0]
-                            else:
-                                sql = 'INSERT INTO users VALUES(?, ?)'
-                                data = [(inputik.get_text(), '0',)]
-                                with con:
-                                    con.executemany(sql, data)
-                            game_state = "MAIN_MENU"
-                            User[0] = True
+                            if bool(inputik.get_text()):
+                                score_us = cur.execute("""SELECT score FROM users
+                                                                    WHERE name = ?""", (inputik.get_text(),)).fetchall()
+                                if bool(score_us):
+                                    User[1] = inputik.get_text()
+                                    User[2] = int(score_us[0][0])
+                                else:
+                                    sql = 'INSERT INTO users VALUES(?, ?)'
+                                    data = [(inputik.get_text(), '0',)]
+                                    with con:
+                                        con.executemany(sql, data)
+                                    User[1] = inputik.get_text()
+                                game_state = "MAIN_MENU"
+                                User[0] = True
                 elif game_state == "PLAYING":
                     inputik.handle_event(event)
             elif event.type == pygame.KEYDOWN:
-                if game_state == "SIGN_IN":
-                    inputik.handle_event(event)
-                elif game_state == "PLAYING":
+                if game_state == "PLAYING":
                     if event.key == pygame.K_RETURN:
                         if int(inputik.get_text()) == eval(equation[:-4]):
                             score += 1
@@ -259,9 +259,32 @@ def game_loop():
                             game_state = "MAIN_MENU"
                             if score > User[2]:
                                 User[2] = score
+                                sql = 'UPDATE users SET score = ? WHERE name = ?'
+                                data = [(score, User[1])]
+                                with con:
+                                    con.executemany(sql, data)
+                            score = 0
                     inputik.handle_event(event)
                     if inputik.get_text().isdigit():
                         inputik.get_text(inputik.get_text()[:-1])
+                elif game_state == "SIGN_IN":
+                    if event.key == pygame.K_RETURN:
+                        if bool(inputik.get_text()):
+                            score_us = cur.execute("""SELECT score FROM users
+                                                                WHERE name = ?""", (inputik.get_text(),)).fetchall()
+                            if bool(score_us):
+                                User[1] = inputik.get_text()
+                                User[2] = int(score_us[0][0])
+                            else:
+                                sql = 'INSERT INTO users VALUES(?, ?)'
+                                data = [(inputik.get_text(), '0',)]
+                                with con:
+                                    con.executemany(sql, data)
+                                User[1] = inputik.get_text()
+                            game_state = "MAIN_MENU"
+                            User[0] = True
+                    else:
+                        inputik.handle_event(event)
 
 
 
