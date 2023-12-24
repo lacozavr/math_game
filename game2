@@ -3,7 +3,7 @@ import random
 import time
 import sqlite3
 
-
+# класс поля ввода
 class InputBox:
 
     def __init__(self, x, y, w, h, text=''):
@@ -13,7 +13,7 @@ class InputBox:
         self.txt_surface = font_small.render(text, True, self.color)
         self.active = False
         self.maximka = False
-
+#добавление текста
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
@@ -31,18 +31,18 @@ class InputBox:
                 elif not self.maxim():
                     self.text += event.unicode
                 self.txt_surface = font_small.render(self.text, True, BLACK)
-
+#увеличение и ограничение бокса
     def maxim(self):
         maximka = self.txt_surface.get_width() >= 300
         if not maximka:
             width = max(200, self.txt_surface.get_width()+30)
             self.rect.w = width
         return maximka
-
+#отображение бокса
     def draw(self, screen):
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
         pygame.draw.rect(screen, self.color, self.rect, 2)
-
+#возвращение текста бокса
     def get_text(self):
         return self.text
 
@@ -141,7 +141,7 @@ def generate_equation(difficulty):
         operator = random.choice(["+", "-", "*", "/"])
         equation = f"{a} {operator} {b} = ?"
     return equation
-
+# функция регистрации
 def draw_sign_in_menu():
     screen.fill(FON)
     inputik.draw(screen)
@@ -192,9 +192,11 @@ def game_loop():
                 elif game_state == "SIGN_IN":
                     if event.button == 1:  # Левая кнопка мыши
                         pos = pygame.mouse.get_pos()
+                   # Подобие кнопок
                         if (pos[0] >= 737 and pos[0] <= 737 + 30) and (pos[1] >= 32 and pos[1] <= 32 + 35):
                             game_state = "MAIN_MENU"
                         elif (pos[0] >= 220 and pos[0] <= 220 + 360) and (pos[1] >= 380 and pos[1] <= 380 + 40):
+                                   #вывод записи или их добавлене в базу данных
                             score_us = cur.execute("""SELECT score FROM users
                                     WHERE name = ?""", (inputik.get_text(), )).fetchall()
                             if bool(score_us):
