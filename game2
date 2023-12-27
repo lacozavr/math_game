@@ -33,10 +33,10 @@ class InputBox:
 
     def __init__(self, x, y, w, h, text=''):
         self.rect = pygame.Rect(x, y, w, h)
-        self.color = COLOR_INACTIVE
+        self.color = COLOR_ACTIVE
         self.text = text
         self.txt_surface = font_small.render(text, True, self.color)
-        self.active = False
+        self.active = True
         self.maximka = False
         self.only_digit = False
 
@@ -92,17 +92,19 @@ class InputBox:
 
 
 
+
+
 # Инициализация Pygame
 pygame.init()
 
 # Определение цветов
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-BLUE = (0, 0, 255)
+BLUE = (100, 100, 255)
 FON = pygame.color.Color('#88C0D3')
 BUTTON = pygame.color.Color('#CFD4DF')
 COLOR_INACTIVE = pygame.Color(0, 0, 0)
-COLOR_ACTIVE = pygame.Color(255, 255, 255)
+COLOR_ACTIVE = pygame.Color(100, 100, 255)
 
 #Подключение к базе данных
 con = sqlite3.connect('math_game.db')
@@ -123,49 +125,79 @@ font_large = pygame.font.Font(None, 64)
 
 
 # Переменные игры
+buttons = [[['beauty_rect("Играть", font_medium, BLACK, BUTTON, BLUE, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 2 // 3', False],
+            ['beauty_rect("Вход", font_small, BLACK, BUTTON, BLUE, 740, 50', False, 0]],
+           [['beauty_rect("Очень легко", font_medium, BLACK, BUTTON, BLUE, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 2 /'
+             '/ 5',False],
+            ['beauty_rect("Легко", font_medium, BLACK, BUTTON, BLUE, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 2.6 // 5'
+             , False],
+            ['beauty_rect("Нормально", font_medium, BLACK, BUTTON, BLUE, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3.2 '
+             '// 5', False],
+            ['beauty_rect("Сложно", font_medium, BLACK, BUTTON, BLUE, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3.8 // 5'
+             , False]],
+           [['beauty_rect("Войти/Зарегистрироваться", font_small, BLACK, BUTTON, BLUE, 420, 400', False],
+           ['beauty_rect("Х", font_medium, BLACK, BUTTON, BLUE, 750, 50', False]]]
 game_state = "MAIN_MENU"
 difficulty = ""
 score = 0
 User = [False, '', 0] #Зарегестрирован ли пользователь, имя, рекорд
 
 
+def beauty_rect(text, font, text_clr, btn_clr, frame_clr, x, y, act=False):
+    if not act:
+        text_surface = font.render(text, True, text_clr)
+        text_rect = text_surface.get_rect()
+        text_rect.center = (x, y)
+        x, y, w, h = text_rect
+        pygame.draw.rect(screen, frame_clr, (x - 25, y - 15, w + 50, h + 30), 0, 20)
+        pygame.draw.rect(screen, btn_clr, (x - 20, y - 10, w + 40, h + 20), 0, 20)
+        screen.blit(text_surface, text_rect)
+    else:
+        text_surface = font.render(text, True, WHITE)
+        text_rect = text_surface.get_rect()
+        text_rect.center = (x, y)
+        x, y, w, h = text_rect
+        pygame.draw.rect(screen, btn_clr, (x - 25, y - 15, w + 50, h + 30), 0, 20)
+        pygame.draw.rect(screen, frame_clr, (x - 20, y - 10, w + 40, h + 20), 0, 20)
+        screen.blit(text_surface, text_rect)
 
-
-# Функция отображения текста на экране
-def draw_text(text, font, color, x, y):
-    text_surface = font.render(text, True, color)
+def draw_text(text, font, text_clr, x, y):
+    text_surface = font.render(text, True, text_clr)
     text_rect = text_surface.get_rect()
     text_rect.center = (x, y)
     screen.blit(text_surface, text_rect)
+    return text_rect
+
+
 
 # Функция отображения главного меню
 def draw_main_menu():
     screen.fill(FON)
-    pygame.draw.rect(screen, BUTTON, (100, 170, 600, 60))
-    draw_text("Математические примеры", font_large, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3)
-    pygame.draw.rect(screen, BUTTON, (200, 280, 430, 40))
-    draw_text(f"Максимальный счёт: {User[2]}", font_medium, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
-    pygame.draw.rect(screen, BUTTON, (330, 380, 140, 40))
-    draw_text("Играть", font_medium, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 2 // 3)
-    if not User[0]:
-        pygame.draw.rect(screen, BLACK, (700, 20, 80, 40), 1)
-        draw_text("Вход", font_small, BLACK, 740, 40)
-    else:
-        draw_text(User[1], font_small, BLACK, 740, 40)
+    beauty_rect("Математические примеры", font_large, BLACK, BUTTON, BLUE, SCREEN_WIDTH // 2, SCREEN_WIDTH // 5)
+    beauty_rect(f"Максимальный счёт: {User[2]}", font_medium, BLACK, BUTTON, BLUE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+    for n in buttons[0]:
+        if len(n) == 3:
+            if not User[0]:
+                if n[1]:
+                    eval(n[0] + ', True)')
+                else:
+                    eval(n[0] + ')')
+            else:
+                draw_text(User[1], font_small, BLACK, 740, 40)
+        elif n[1]:
+            eval(n[0] + ', True)')
+        else:
+            eval(n[0] + ')')
 
 # Функция отображения меню выбора сложности
 def draw_difficulty_menu():
     screen.fill(FON)
-    pygame.draw.rect(screen, BUTTON, (150, 120, 500, 60))
-    draw_text("Выберите сложность", font_large, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4)
-    pygame.draw.rect(screen, BUTTON, (290, 217, 220, 40))
-    draw_text("Очень легко", font_medium, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 2 // 5)
-    pygame.draw.rect(screen, BUTTON, (290, 290, 220, 40))
-    draw_text("Легко", font_medium, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 2.6 // 5)
-    pygame.draw.rect(screen, BUTTON, (290, 365, 220, 40))
-    draw_text("Нормально", font_medium, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3.2 // 5)
-    pygame.draw.rect(screen, BUTTON, (290, 435, 220, 40))
-    draw_text("Сложно", font_medium, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3.8 // 5)
+    beauty_rect("Выберите сложность", font_large, BLACK, BUTTON, BLUE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4)
+    for n in buttons[1]:
+        if n[1]:
+            eval(n[0] + ', True)')
+        else:
+            eval(n[0] + ')')
 
 # Функция генерации случайного примера
 def generate_equation(difficulty):
@@ -190,17 +222,18 @@ def generate_equation(difficulty):
 def draw_sign_in_menu():
     screen.fill(FON)
     inputik.draw(screen)
-    pygame.draw.rect(screen, BUTTON, (140, 180, 480, 40))
-    draw_text("Введите имя пользователя:", font_medium, BLACK, 380, 200)
-    pygame.draw.rect(screen, BUTTON, (220, 380, 360, 40))
-    draw_text("Войти/Зарегистрироваться", font_small, BLACK, 400, 400)
-    pygame.draw.rect(screen, FON, (737, 32, 30, 35), 1)
-    draw_text("Х", font_large, BLACK, 750, 50)
+    beauty_rect("Введите имя пользователя:", font_medium, BLACK, BUTTON, BLUE, 430, 190)
+    for n in buttons[2]:
+        if n[1]:
+            eval(n[0] + ', True)')
+        else:
+            eval(n[0] + ')')
+
 
 def draw_play_zone(equation, tm):
     screen.fill(FON)
     inputik.draw(screen)
-    draw_text(equation, font_medium, BLACK, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2.5)
+    beauty_rect(equation, font_medium, BLACK, BUTTON, BLUE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2.5)
     draw_text(f"Счёт: {score}", font_medium, BLACK, 70, 50)
     pygame.draw.rect(screen, BUTTON, (250, 130, 310, 40))
     pygame.draw.rect(screen, (150, 150, 255), (255, 135, tm.get_part(), 30))
@@ -211,12 +244,44 @@ def game_loop():
     global game_state, difficulty, score, inputik, equation
     clock, running, c = pygame.time.Clock(), True, 0
 
-
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
+            if (pos[0] >= 330 and pos[0] <= 330 + 140) and (pos[1] >= 380 and pos[1] <= 380 + 40):
+                buttons[0][0][1] = True
+            else:
+                buttons[0][0][1] = False
+            if (pos[0] >= 700 and pos[0] <= 700 + 80) and (pos[1] >= 20 and pos[1] <= 20 + 40):
+                buttons[0][1][1] = True
+            else:
+                buttons[0][1][1] = False
+            if (pos[0] >= 290 and pos[0] <= 290 + 220) and (pos[1] >= 217 and pos[1] <= 217 + 40):
+                buttons[1][0][1] = True
+            else:
+                buttons[1][0][1] = False
+            if (pos[0] >= 290 and pos[0] <= 290 + 220) and (pos[1] >= 290 and pos[1] <= 290 + 40):
+                buttons[1][1][1] = True
+            else:
+                buttons[1][1][1] = False
+            if (pos[0] >= 290 and pos[0] <= 290 + 220) and (pos[1] >= 365 and pos[1] <= 365 + 40):
+                buttons[1][2][1] = True
+            else:
+                buttons[1][2][1] = False
+            if (pos[0] >= 290 and pos[0] <= 290 + 220) and (pos[1] >= 435 and pos[1] <= 435 + 40):
+                buttons[1][3][1] = True
+            else:
+                buttons[1][3][1] = False
+            if (pos[0] >= 737 and pos[0] <= 737 + 30) and (pos[1] >= 32 and pos[1] <= 32 + 35):
+                buttons[2][1][1] = True
+            else:
+                buttons[2][1][1] = False
+            if (pos[0] >= 220 and pos[0] <= 220 + 360) and (pos[1] >= 380 and pos[1] <= 380 + 40):
+                buttons[2][0][1] = True
+            else:
+                buttons[2][0][1] = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 if game_state == "MAIN_MENU":
                     if event.button == 1: # Левая кнопка мыши
                         pos = pygame.mouse.get_pos()
@@ -224,7 +289,7 @@ def game_loop():
                             game_state = "DIFFICULTY_MENU"
                         if (pos[0] >= 700 and pos[0] <= 700 + 80) and (pos[1] >= 20 and pos[1] <= 20 + 40):
                             game_state = "SIGN_IN"
-                            inputik = InputBox(150, 230, 200, 40)
+                            inputik = InputBox(310, 280, 200, 40)
                 elif game_state == "DIFFICULTY_MENU":
                     if event.button == 1: # Левая кнопка мыши
                         pos = pygame.mouse.get_pos()
@@ -320,6 +385,8 @@ def game_loop():
                             User[0] = True
                     else:
                         inputik.handle_event(event)
+            elif event.type == pygame.MOUSEMOTION:
+                pass
         screen.fill(BLACK)
         if game_state == "MAIN_MENU":
             draw_main_menu()
