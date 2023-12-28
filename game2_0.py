@@ -1,4 +1,4 @@
-﻿import pygame
+import pygame
 import random
 import time
 import sqlite3
@@ -29,8 +29,8 @@ class Timer:
         self.a += self.b
         return 300 - self.a
 
-class InputBox:
 
+class InputBox:
     def __init__(self, x, y, w, h, text=''):
         self.rect = pygame.Rect(x, y, w, h)
         self.color = COLOR_INACTIVE
@@ -66,13 +66,13 @@ class InputBox:
     def maxim(self):
         maximka = self.txt_surface.get_width() >= 300
         if not maximka:
-            width = max(200, self.txt_surface.get_width()+30)
+            width = max(200, self.txt_surface.get_width() + 30)
             self.rect.w = width
         return maximka
 
     # отображение бокса
     def draw(self, screen):
-        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
     # возвращение текста бокса
@@ -90,6 +90,34 @@ class InputBox:
         else:
             self.only_digit = True
 
+
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(all_sprites)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+
+# Функция для загрузки изображения
+def load_image(name):
+    image = pygame.image.load(name)
+    return image
 
 
 # Инициализация Pygame
@@ -116,6 +144,9 @@ SCREEN_HEIGHT = 600
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Математические примеры")
 
+all_sprites = pygame.sprite.Group()
+dragon = AnimatedSprite(load_image("data/pygame-8-1.png"), 8, 2, 50, 50)
+
 # Шрифты
 font_small = pygame.font.Font(None, 36)
 font_medium = pygame.font.Font(None, 48)
@@ -127,9 +158,6 @@ game_state = "MAIN_MENU"
 difficulty = ""
 score = 0
 User = [False, '', 0] #Зарегестрирован ли пользователь, имя, рекорд
-
-
-
 
 # Функция отображения текста на экране
 def draw_text(text, font, color, x, y):
@@ -178,14 +206,15 @@ def generate_equation(difficulty):
         operator = random.choice(["+", "-", "*"])
         equation = f"{a} {operator} {b} = ?"
     elif difficulty == "Нормально":
-        a, b = random.randint(1, 50), random.randint(1, 50)
+        a, b = random.randint(10, 70), random.randint(1, 20)
         operator = random.choice(["+", "-", "*", "/"])
         equation = f"{a} {operator} {b} = ?"
     elif difficulty == "Сложно":
         a, b = random.randint(1, 100), random.randint(1, 100)
-        operator = random.choice(["+", "-", "*", "/"])
+        operator = random.choice(["*", "/"])
         equation = f"{a} {operator} {b} = ?"
     return equation
+
 
 def draw_sign_in_menu():
     screen.fill(FON)
@@ -197,6 +226,7 @@ def draw_sign_in_menu():
     pygame.draw.rect(screen, FON, (737, 32, 30, 35), 1)
     draw_text("Х", font_large, BLACK, 750, 50)
 
+
 def draw_play_zone(equation, tm):
     screen.fill(FON)
     inputik.draw(screen)
@@ -206,11 +236,9 @@ def draw_play_zone(equation, tm):
     pygame.draw.rect(screen, (150, 150, 255), (255, 135, tm.get_part(), 30))
 
 
-
 def game_loop():
     global game_state, difficulty, score, inputik, equation
     clock, running, c = pygame.time.Clock(), True, 0
-
 
     while running:
         for event in pygame.event.get():
@@ -279,13 +307,21 @@ def game_loop():
                                 game_state = "MAIN_MENU"
                                 User[0] = True
                 elif game_state == "PLAYING":
+                    all_sprites.update()
                     inputik.handle_event(event)
             elif event.type == pygame.KEYDOWN:
                 if game_state == "PLAYING":
                     if event.key == pygame.K_RETURN:
                         if bool(inputik.get_text()):
                             if int(inputik.get_text()) == eval(equation[:-4]):
-                                score += 1
+                                if difficulty == 'Очень легко':
+                                    score += 1
+                                elif difficulty == 'Легко':
+                                    score += 2
+                                elif difficulty == 'Нормально':
+                                    score += 3
+                                else:
+                                    score += 4
                                 equation = generate_equation(difficulty)
                                 inputik.set_text('')
                                 tm = Timer(difficulty)
@@ -321,6 +357,7 @@ def game_loop():
                     else:
                         inputik.handle_event(event)
         screen.fill(BLACK)
+        all_sprites.draw(screen)
         if game_state == "MAIN_MENU":
             draw_main_menu()
         elif game_state == "DIFFICULTY_MENU":
